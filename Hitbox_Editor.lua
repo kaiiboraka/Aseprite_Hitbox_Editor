@@ -84,6 +84,8 @@ function createHitBox()
         end
     end
     function fillBox(ev)
+        local site = app.site
+        local layer = app.activeLayer
         local newHitbox = sprite:newLayer()
         newHitbox.parent = hitboxGroup
         newHitbox.name = dialog.data.name
@@ -94,9 +96,11 @@ function createHitBox()
         app.command.Fill{ }
         app.fgColor = colorfg
         sprite.selection:deselect()
+        app.site = site
+        app.activeLayer = layer
         dialog:close()
     end
-    dialog:label{text="Hitbox name:"}:entry{id='name', text='Hitbox #'..(#hitboxGroup.layers+1), }
+    dialog:label{text="Hitbox name:"}:entry{id='name', text='Hitbox #'..(#hitboxGroup.layers+1), }:separator{}
     dialog:canvas{ id="canvas", width=SIZE, height=SIZE,
         onmousedown=(function(ev)
          startPt = {x=ev.x, y=ev.y}
@@ -124,8 +128,7 @@ function createHitBox()
             ctx:fillRect(getSelection('canvas'))
         end)
     }
-    dialog:label{text="Color:"}
-    dialog:color{ id='color',
+    dialog:separator{}:label{text="Color:"}:color{ id='color',
     color=Color{r=255, g=0, b=0, a=255},
     onchange=(function(ev)dialog:repaint() end)}
     :separator()
@@ -140,6 +143,8 @@ function loadData()
     --         print('The sprite has changed '..table_to_string(ev))
     --     end
     -- )
+    local site = app.site
+    local layer = app.activeLayer
     hitboxData = {}
     hitboxGroup = nil
     local sprite = app.sprite
@@ -159,6 +164,9 @@ function loadData()
     for i,layer in ipairs(hitboxGroup.layers) do
         hitboxData[layer.name] = layer
     end
+    
+    app.site = site
+    app.activeLayer = layer
     -- app.alert("Selection: "..tostring(selection.bounds))
     -- app.editor:askPoint{
     --     title='wow',
