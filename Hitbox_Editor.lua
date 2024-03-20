@@ -215,5 +215,6 @@ function createMenu()
     :button{id='vis',text='<>',onclick=toggleVisibility}
     :button{text='...',onclick=noOP}:show{wait=false}
 end
+
 local hitboxData, hitboxGroup, menu
 createMenu()
