@@ -19,6 +19,8 @@ function table_to_string(tbl)
             result = result..table_to_string(v)
         elseif type(v) == "boolean" then
             result = result..tostring(v)
+        elseif type(v) == "function" then
+            result = result..tostring(v)
         else
             result = result.."\""..v.."\""
         end
@@ -41,15 +43,20 @@ function createHitBox()
     newHitbox.parent = hitboxGroup
     newHitbox.name = "New Hitbox"
     -- newHitbox.isContinuous = true -- use continuousness for iterpolating
-    local selection = sprite.selection
     -- app.alert("A"..tostring(sprite).."B"..tostring(sprite.height))
-    local half = sprite.width/2
-    selection:select(Rectangle{ x=half/2, y=half/2, width=half, height=half })
-    app.command.MoveMask{ target='content', units='pixel', quantity=0 }
-    local colorfg = app.fgColor
-    app.fgColor = Color{r=255, g=0, b=0, a=64}
-    app.command.Fill{ }
-    app.fgColor = colorfg
+    app.tool = 'rectangular_marquee'
+    function fillBox(ev)
+        -- local half = sprite.height/2
+        -- selection:select(Rectangle{ x=half/2, y=half/2, width=half, height=half })
+        -- app.command.MoveMask{ target='content', units='pixel', quantity=0 }
+        local colorfg = app.fgColor
+        app.fgColor = Color{r=255, g=0, b=0, a=64}
+        app.command.Fill{ }
+        app.fgColor = colorfg
+        sprite.selection:deselect()
+    end
+    queueEvent('change', fillBox, (function() sprite.deleteLayer(newHitbox) end))
+    -- app.useTool{tool='rectangular_marquee'}
 end
 
 -- Open dialog, ask user for two colors
@@ -86,18 +93,53 @@ function loadData()
     --     end
     -- }
 end
-
-function createMenu()
-    local dlg = Dialog("Hitbox Editor Toolbar")
-    dlg
-      :button{text="+",onclick=createHitBox}
-      :show{wait=false}
+function noOP()
+end
+function queueEvent(event, callback)
+    queueEvent(event, callback, noOP)
+end
+function queueEvent(event, callback, cancel)
+    if eventQueue[event] then
+        eventQueue[event].cancel()
+    end
+    eventQueue[event] = {callback=callback, cancel=cancel}
 end
 
--- Generates the color gradiants and displays them
--- Run script
+function createMenu()
+    if menu then
+        menu.close()
+    end
+    local function listener(type, ev)
+        if eventQueue[type] then
+            eventQueue[type].callback(ev)
+            eventQueue[type] = nil
+        end
+        dev(type.." Event: "..table_to_string(ev))
+    end
+    local function beforelistener(ev)
+        listener('before', ev)
+    end
+    local function afterlistener(ev)
+        listener('after', ev)
+    end
+    local function changelistener(ev)
+        listener('change', ev)
+    end
+    local sprite = app.sprite
+    app.events:on('beforecommand', beforelistener)
+    sprite.events:on('change', changelistener)
+    app.events:on('aftercommand', afterlistener)
+    menu = Dialog{title="Hitbox Editor Toolbar", onclose=(function() 
+        app.events:off(beforelistener)
+        sprite.events:off(changelistener)
+        app.events:off(afterlistener)
+        menu = nil
+     end)}:button{text="+",onclick=createHitBox}:show{wait=false}
+end
+
 do
-    local hitboxData, hitboxGroup
+    local hitboxData, hitboxGroup, menu
+    eventQueue = { before=nil, after=nil, change=nil }
     loadData()
     createMenu()
 end
