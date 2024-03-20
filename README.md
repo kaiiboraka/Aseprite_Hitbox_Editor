@@ -53,8 +53,4 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
   - Hitbox types have unique:
     - Color
     AND
-<<<<<<< HEAD
     - Shape
-=======
-    - Shape
->>>>>>> d9e4d0fb11378721a8e5009ae8bcf3593df54c82
