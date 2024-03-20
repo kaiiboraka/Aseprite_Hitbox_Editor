@@ -21,8 +21,14 @@ function table_to_string(tbl)
             result = result..tostring(v)
         elseif type(v) == "function" then
             result = result..tostring(v)
-        else
+        elseif type(v) == "string" then
             result = result.."\""..v.."\""
+        elseif type(v) == "number" then
+            result = result..v
+        elseif type(v) == "userdata" then
+            result = result..tostring(v)
+        else
+            result = result..type(v)..""
         end
         result = result..","
     end
@@ -34,29 +40,80 @@ function table_to_string(tbl)
 end
 
 function dev(str)
-    print(str)
+    dev(str, 'info')
+end
+
+function dev(str, tag)
+    -- if type(str) == "table" then
+        -- str = ''..table_to_string(str)
+    -- end
+    if tag == 'verbose' then
+        -- print(str)
+    elseif tag == 'error' then
+        app.alert(str)
+    else
+        print(str)
+    end
 end
 
 function createHitBox()
+    local dialog = Dialog("New Hitbox")
     local sprite = app.sprite
-    local newHitbox = sprite:newLayer()
-    newHitbox.parent = hitboxGroup
-    newHitbox.name = "New Hitbox"
-    -- newHitbox.isContinuous = true -- use continuousness for iterpolating
-    -- app.alert("A"..tostring(sprite).."B"..tostring(sprite.height))
-    app.tool = 'rectangular_marquee'
+    local SIZE = 256
+    local drawScaleX = SIZE/sprite.width
+    local drawScaleY = SIZE/sprite.height
+    local startPt = {x=(sprite.width/4)*drawScaleX, y=(sprite.height/4)*drawScaleY}
+    local endPt = {x=(3*sprite.width/4)*drawScaleX, y=(3*sprite.height/4)*drawScaleY}
+    local selecting = false
     function fillBox(ev)
-        -- local half = sprite.height/2
-        -- selection:select(Rectangle{ x=half/2, y=half/2, width=half, height=half })
-        -- app.command.MoveMask{ target='content', units='pixel', quantity=0 }
+        local newHitbox = sprite:newLayer()
+        newHitbox.parent = hitboxGroup
+        newHitbox.name = "Hitbox #"..#hitboxGroup.layers
+        -- newHitbox.isContinuous = true -- use continuousness for iterpolating
+        sprite.selection:select(Rectangle{ x=startPt.x/drawScaleX, y=startPt.y/drawScaleY, width=math.abs(endPt.x-startPt.x)/drawScaleX, height=math.abs(endPt.y-startPt.y)/drawScaleY})
         local colorfg = app.fgColor
-        app.fgColor = Color{r=255, g=0, b=0, a=64}
+        app.fgColor = Color{r=dialog.data.color.red, g=dialog.data.color.green, b=dialog.data.color.blue, a=64}
         app.command.Fill{ }
         app.fgColor = colorfg
         sprite.selection:deselect()
+        dialog:close()
     end
-    queueEvent('change', fillBox, (function() sprite.deleteLayer(newHitbox) end))
-    -- app.useTool{tool='rectangular_marquee'}
+    function toPixelPerfect(x, y)
+        return {x=math.floor(x/drawScaleX)*drawScaleX, y=math.floor(y/drawScaleY)*drawScaleY}
+    end
+    dialog:canvas{ id="canvas", width=SIZE, height=SIZE,
+        onmousedown=(function(ev)
+         startPt = toPixelPerfect(ev.x, ev.y)
+         selecting = true
+         dialog:repaint()
+        end),
+        onmousemove=(function(ev)
+            if not selecting then return end
+            endPt = toPixelPerfect(ev.x, ev.y)
+            dialog:repaint()
+        end),
+        onmouseup=(function(ev)
+            endPt = toPixelPerfect(ev.x, ev.y)
+            selecting = false
+            dialog:repaint()
+        end),
+        onpaint=(function(ev) 
+            local ctx = ev.context
+            local sprite = app.sprite
+            local img = Image(sprite.width, sprite.height, sprite.colorMode)
+            img:drawSprite(sprite, app.site.frameNumber)
+            ctx:drawImage(img,0,0,sprite.width,sprite.height,0,0,SIZE,SIZE)
+            ctx.color = dialog.data.color
+            ctx.color = Color{r=ctx.color.red, g=ctx.color.green, b=ctx.color.blue, a=64};
+            ctx:fillRect(Rectangle(startPt.x,startPt.y,math.abs(endPt.x-startPt.x),math.abs(endPt.y-startPt.y)))
+        end)
+    }:color{ id='color',
+    label='Hitbox Color',
+    color=Color{r=255, g=0, b=0, a=255},
+    onchange=(function(ev)dialog:repaint() end)}
+    :separator()
+    :button{ id="ok", text="ACCEPT", onclick=fillBox }
+    :show{ wait=false }
 end
 
 -- Open dialog, ask user for two colors
@@ -114,7 +171,7 @@ function createMenu()
             eventQueue[type].callback(ev)
             eventQueue[type] = nil
         end
-        dev(type.." Event: "..table_to_string(ev))
+        dev(type.." Event: "..table_to_string(ev), 'verbose')
     end
     local function beforelistener(ev)
         listener('before', ev)
@@ -133,6 +190,7 @@ function createMenu()
         app.events:off(beforelistener)
         sprite.events:off(changelistener)
         app.events:off(afterlistener)
+        sprite:deleteLayer(hitboxGroup)
         menu = nil
      end)}:button{text="+",onclick=createHitBox}:show{wait=false}
 end
