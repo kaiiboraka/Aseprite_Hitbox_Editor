@@ -65,12 +65,30 @@ function createHitBox()
     local startPt = {x=(sprite.width/4)*drawScaleX, y=(sprite.height/4)*drawScaleY}
     local endPt = {x=(3*sprite.width/4)*drawScaleX, y=(3*sprite.height/4)*drawScaleY}
     local selecting = false
+    function getSelection(coordsType)
+        local x = math.min(startPt.x, endPt.x)
+        local y = math.min(startPt.y, endPt.y)
+        local w = math.abs(endPt.x - startPt.x)
+        local h = math.abs(endPt.y - startPt.y)
+        if coordsType == 'real' then
+            return Rectangle{ x=x, y=y, width=w, height=h }
+        end
+        x=math.floor(x/drawScaleX)
+        y=math.floor(y/drawScaleY)
+        w=math.floor(w/drawScaleX)
+        h=math.floor(h/drawScaleY)
+        if coordsType == 'canvas' then
+            return Rectangle{ x=x*drawScaleX, y=y*drawScaleY, width=w*drawScaleX, height=h*drawScaleY }
+        elseif coordsType == 'sprite' then
+            return Rectangle{ x=x, y=y, width=w, height=h }
+        end
+    end
     function fillBox(ev)
         local newHitbox = sprite:newLayer()
         newHitbox.parent = hitboxGroup
-        newHitbox.name = "Hitbox #"..#hitboxGroup.layers
+        newHitbox.name = dialog.data.name
         -- newHitbox.isContinuous = true -- use continuousness for iterpolating
-        sprite.selection:select(Rectangle{ x=startPt.x/drawScaleX, y=startPt.y/drawScaleY, width=math.abs(endPt.x-startPt.x)/drawScaleX, height=math.abs(endPt.y-startPt.y)/drawScaleY})
+        sprite.selection:select(getSelection('sprite'))
         local colorfg = app.fgColor
         app.fgColor = Color{r=dialog.data.color.red, g=dialog.data.color.green, b=dialog.data.color.blue, a=64}
         app.command.Fill{ }
@@ -78,22 +96,20 @@ function createHitBox()
         sprite.selection:deselect()
         dialog:close()
     end
-    function toPixelPerfect(x, y)
-        return {x=math.floor(x/drawScaleX)*drawScaleX, y=math.floor(y/drawScaleY)*drawScaleY}
-    end
+    dialog:label{text="Hitbox name:"}:entry{id='name', text='Hitbox #'..(#hitboxGroup.layers+1), }
     dialog:canvas{ id="canvas", width=SIZE, height=SIZE,
         onmousedown=(function(ev)
-         startPt = toPixelPerfect(ev.x, ev.y)
+         startPt = {x=ev.x, y=ev.y}
          selecting = true
          dialog:repaint()
         end),
         onmousemove=(function(ev)
             if not selecting then return end
-            endPt = toPixelPerfect(ev.x, ev.y)
+            endPt = {x=ev.x, y=ev.y}
             dialog:repaint()
         end),
         onmouseup=(function(ev)
-            endPt = toPixelPerfect(ev.x, ev.y)
+            endPt = {x=ev.x, y=ev.y}
             selecting = false
             dialog:repaint()
         end),
@@ -105,10 +121,11 @@ function createHitBox()
             ctx:drawImage(img,0,0,sprite.width,sprite.height,0,0,SIZE,SIZE)
             ctx.color = dialog.data.color
             ctx.color = Color{r=ctx.color.red, g=ctx.color.green, b=ctx.color.blue, a=64};
-            ctx:fillRect(Rectangle(startPt.x,startPt.y,math.abs(endPt.x-startPt.x),math.abs(endPt.y-startPt.y)))
+            ctx:fillRect(getSelection('canvas'))
         end)
-    }:color{ id='color',
-    label='Hitbox Color',
+    }
+    dialog:label{text="Color:"}
+    dialog:color{ id='color',
     color=Color{r=255, g=0, b=0, a=255},
     onchange=(function(ev)dialog:repaint() end)}
     :separator()
