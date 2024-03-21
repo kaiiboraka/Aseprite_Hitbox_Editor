@@ -35,7 +35,6 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
     - (x, y) coordinate relative to the sprite canvas
     - origin (0, 0) in the top left corner
   - Knockback (Vector2)
-    - 
 
 <p></p>
 
