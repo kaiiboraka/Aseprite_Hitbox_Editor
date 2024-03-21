@@ -93,12 +93,13 @@ openFile = (function(filepath)
     return configEnv
 end),
 closeFile = (function(fileToSave)
-    dev(fileToSave)
-    local f = io.open(''..fileToSave.filepath, "w")
+    local filepath = ''..fileToSave.filepath
+    local f = io.open(filepath, "w")
     fileToSave.filepath = nil
     result = table_to_string(fileToSave)
     f:write(result:sub(2, result:len()-1))
     f:close()
+    fileToSave.filepath = filepath
 end),
 }
 function createHitBox()
@@ -194,18 +195,56 @@ end
 function openSettings()
     local dialog = Dialog("Settings")
     function changeTab(ev)
+        dialog:modify{id='sliderTest',visible=false}
+        dialog:modify{id='comboTest',visible=false}
         dialog:modify{id='preserveOnClose',visible=false}
+        dialog:modify{id='menuBtn',visible=false}
+        dialog:modify{id='A',visible=false}
+        dialog:modify{id='B',visible=false}
+        dialog:modify{id='C',visible=false}
+        dialog:modify{id='D',visible=false}
+        dialog:modify{id='E',visible=false}
         if ev.tab == "hitbox" then
         elseif ev.tab == "general" then
             dialog:modify{id='preserveOnClose',visible=true}
         elseif ev.tab == "keybinds" then
+        elseif ev.tab == "dev" then
+            dialog:modify{id='sliderTest',visible=true}
+            dialog:modify{id='comboTest',visible=true}
+            dialog:modify{id='menuBtn',visible=true}
+            dialog:modify{id='A',visible=true}
+            dialog:modify{id='B',visible=true}
+            dialog:modify{id='C',visible=true}
+            dialog:modify{id='D',visible=true}
+            dialog:modify{id='E',visible=true}
         end
     end
-    dialog:tab{id="hitbox", text="Hitbox"}
+    dialog:tab{id="hitbox", text="Hitboxes"}
     dialog:tab{id="general", text="General"}
     dialog:tab{id="keybinds", text="Keybinds"}
+    dialog:tab{id="dev", text="DevTesting"}
     dialog:endtabs{id='tabmenu',onchange=changeTab}
     dialog:check{id='preserveOnClose',text="Remove Hitboxes on Close", selected=not settings.preserveOnClose, onclick=function(ev) settings.preserveOnClose = not settings.preserveOnClose end}
+    
+    -- Dev Testing
+    dialog:combobox{id='comboTest',options={"a","b","c"}, option='a'}
+    dialog:slider{id='sliderTest', min=1, max=#app.sprite.frames,value=app.frame.frameNumber}
+    dialog:button{id='menuBtn', text='menu',onclick=function(ev)
+        menu = Dialog{title="Menu"}
+        menu:menuItem{id='balh', text='Text A', onclick=noOP, selected=true}
+        menu:menuItem{id='balh2', text='Text B', onclick=noOP}
+        menu:showMenu{}
+    end }
+    dialog:newrow{ always=false }
+    dialog:button{id='A',text="A"}
+    dialog:button{id='B',text="B"}
+    dialog:check{id='C',text="C"}
+    dialog:button{id='D',text="D"}
+    dialog:button{id='E',text="E"}
+    dialog:modify{id='E', enabled=false}
+    dialog:newrow{ always=true } 
+    -- End Dev Testing
+    
     dialog:separator{id='sep'}
     dialog:button{text="SAVE", onclick=function() dialog:close() end}
     changeTab({tab="hitbox"})
