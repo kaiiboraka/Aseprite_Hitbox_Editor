@@ -1,2 +1,16 @@
 - [x] Create toolbar UI
+  - [ ] Add Hitbox button
+    - [ ] Change location x,y,w,h buttons
+    - [ ] Shape
+    - [ ] Color/hitbox type presets
+    - [ ] Make adding hitboxes work when hidden (don't use app.command.Fill{ }?)
+  - [ ] Remove Hitbox button
+    - [ ] Dropdown name slector
+  - [ ] Edit Hitbox button
+    - [ ] Dropdown for which hitbox
+    - [ ] large Preview image
+    - [ ] slider typething for which frame
+    - [ ] Draw Mockup image
+  - [ ] Settings button
+    - [ ] Add actual settings
 - [ ] Make changing layer color change color of every cel in that hitbox layer
