@@ -46,7 +46,7 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
     AND/OR
     - Shape
 
-#### TERMS:
+## TERMS, and how hitboxes even work:
 
 - **HITBOX:** The attacking area of an offensive action. Attacks have different hit types: Strike, Projectile, Grab, Wind.
   
