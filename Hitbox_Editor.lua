@@ -11,9 +11,8 @@ function table_to_string(tbl)
     for k, v in pairs(tbl) do
         -- Check the key type (ignore any numerical keys - assume its an array)
         if type(k) == "string" then
-            result = result.."[\""..k.."\"]".."="
+            result = result..k.."="
         end
-
         -- Check the value type
         if type(v) == "table" then
             result = result..table_to_string(v)
@@ -30,10 +29,10 @@ function table_to_string(tbl)
         else
             result = result..type(v)..""
         end
-        result = result..","
+        result = result..",\n"
     end
     -- Remove leading commas from the result
-    if result ~= "" then
+    if result ~= "{" then
         result = result:sub(1, result:len()-1)
     end
     return result.."}"
@@ -45,7 +44,7 @@ end
 
 function dev(str, tag)
     if type(str) == "table" then
-        str = ''..table_to_string(str)
+        str = table_to_string(str)
     end
     if tag == 'verbose' then
         -- print(str)
@@ -84,14 +83,22 @@ getSelection = (function(startPt,endPt,SIZE,coordsType)
         return Rectangle{ x=x, y=y, width=w, height=h }
     end
 end),
-openFile = (function(filename)
-    local configEnv = {} -- to keep it separate from the global env
-    local f,err = loadfile(filename, "t", configEnv)
+openFile = (function(filepath)
+    local configEnv = {}
+    local f,err = loadfile(filepath, "t", configEnv)
     if f then
         f()
-        dev(configEnv)
     end
+    configEnv.filepath = filepath
     return configEnv
+end),
+closeFile = (function(fileToSave)
+    dev(fileToSave)
+    local f = io.open(''..fileToSave.filepath, "w")
+    fileToSave.filepath = nil
+    result = table_to_string(fileToSave)
+    f:write(result:sub(2, result:len()-1))
+    f:close()
 end),
 }
 function createHitBox()
@@ -185,6 +192,24 @@ function toggleVisibility()
 end
 
 function openSettings()
+    local dialog = Dialog("Settings")
+    function changeTab(ev)
+        dialog:modify{id='preserveOnClose',visible=false}
+        if ev.tab == "hitbox" then
+        elseif ev.tab == "general" then
+            dialog:modify{id='preserveOnClose',visible=true}
+        elseif ev.tab == "keybinds" then
+        end
+    end
+    dialog:tab{id="hitbox", text="Hitbox"}
+    dialog:tab{id="general", text="General"}
+    dialog:tab{id="keybinds", text="Keybinds"}
+    dialog:endtabs{id='tabmenu',onchange=changeTab}
+    dialog:check{id='preserveOnClose',text="Remove Hitboxes on Close", selected=not settings.preserveOnClose, onclick=function(ev) settings.preserveOnClose = not settings.preserveOnClose end}
+    dialog:separator{id='sep'}
+    dialog:button{text="SAVE", onclick=function() dialog:close() end}
+    changeTab({tab="hitbox"})
+    dialog:show{wait=false}
 end
 
 function loadData()
@@ -230,6 +255,7 @@ function createMenu()
         if not settings.preserveOnClose then
             app.sprite:deleteLayer(hitboxGroup)
         end
+        UTILS.closeFile(settings)
         menu = nil
      end)}
     :button{text="◻+",onclick=createHitBox}
@@ -240,5 +266,7 @@ function createMenu()
 end
 
 local hitboxData, hitboxGroup, menu
-settings = UTILS.openFile('Settings')
+local script_path = app.fs.userConfigPath..'scripts'..app.fs.pathSeparator..'Hitbox_Editor'
+local settings_path = script_path..app.fs.pathSeparator..'Hitbox_Settings.ini'
+settings = UTILS.openFile(settings_path)
 createMenu()
