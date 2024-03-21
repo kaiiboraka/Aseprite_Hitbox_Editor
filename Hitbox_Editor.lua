@@ -146,6 +146,38 @@ function createHitBox()
     :show{ wait=false }
 end
 
+function removeHitBox()
+end
+function editHitBox()
+end
+
+function toggleVisibility()
+    local site = app.site
+    local layer = app.activeLayer
+    if hitboxGroup.isVisible then
+        hitboxGroup.isCollapsed = true
+        hitboxGroup.isVisible = false                    
+        for i = 1,#hitboxGroup.layers do
+            hitboxGroup.layers[i].isVisible = false
+        end
+        menu:modify{id='vis',text='—'}
+        app.refresh()
+    else            
+        hitboxGroup.isVisible = true
+        hitboxGroup.isExpanded = true                    
+        for i = 1,#hitboxGroup.layers do
+            hitboxGroup.layers[i].isVisible = true
+        end
+        menu:modify{id='vis',text='<o>'}
+        app.refresh()
+    end 
+    app.activeLayer = layer
+    app.site = site
+end
+
+function openSettings()
+end
+
 function loadData()
     local site = app.site
     local layer = app.activeLayer
@@ -174,30 +206,6 @@ function loadData()
     app.refresh()
 end
 
-function toggleVisibility()
-    local site = app.site
-    local layer = app.activeLayer
-    if hitboxGroup.isVisible then
-        hitboxGroup.isCollapsed = true
-        hitboxGroup.isVisible = false                    
-        for i = 1,#hitboxGroup.layers do
-            hitboxGroup.layers[i].isVisible = false
-        end
-        menu:modify{id='vis',text='--'}
-        app.refresh()
-    else            
-        hitboxGroup.isVisible = true
-        hitboxGroup.isExpanded = true                    
-        for i = 1,#hitboxGroup.layers do
-            hitboxGroup.layers[i].isVisible = true
-        end
-        menu:modify{id='vis',text='<>'}
-        app.refresh()
-    end 
-    app.activeLayer = layer
-    app.site = site
-end
-
 function noOP()
 end
 
@@ -209,11 +217,12 @@ function createMenu()
     menu = Dialog{title="Hitbox Toolbar", onclose=(function()
         app.sprite:deleteLayer(hitboxGroup)
         menu = nil
-     end)}:button{text="+◻",onclick=createHitBox}
-    :button{text='++',onclick=noOP}
-    :button{text="◻?",onclick=noOP}
-    :button{id='vis',text='<>',onclick=toggleVisibility}
-    :button{text='...',onclick=noOP}:show{wait=false}
+     end)}
+    :button{text="+◻",onclick=createHitBox}
+    :button{text='◻-',onclick=removeHitBox}
+    :button{text="◻?",onclick=editHitBox}
+    :button{id='vis',text='<o>',onclick=toggleVisibility}
+    :button{text='...',onclick=openSettings}:show{wait=false}
 end
 
 local hitboxData, hitboxGroup, menu
