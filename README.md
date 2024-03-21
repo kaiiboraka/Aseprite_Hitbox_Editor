@@ -20,7 +20,6 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
 ### Hitboxes
 - Persistent properties (over hitbox lifetime):
   - Damage (float)
-  - Knockback (Vector)
   - HitCount (int) 
     - times hitbox can activate per target per one activation
   - isMultihit (property: bool) => HitCount > 1
@@ -30,6 +29,7 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
     - height
   - position (px)
     - (x,y) coordinate relative to the sprite canvas, (0,0) in the top left
+  - Knockback (Vector)
 - Customizable hitbox types, with some templates to start from:
   - BoxType: Hurtbox
     - Mode: Normal
