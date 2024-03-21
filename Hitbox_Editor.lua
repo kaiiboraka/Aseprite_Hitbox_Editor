@@ -84,6 +84,17 @@ getSelection = (function(startPt,endPt,SIZE,coordsType)
         return Rectangle{ x=x, y=y, width=w, height=h }
     end
 end),
+openFile = (function(filename)
+    local configEnv = {} -- to keep it separate from the global env
+    local f,err = loadfile(filename, "t", configEnv)
+    if f then
+        f() -- run the chunk
+        dev(configEnv) -- table
+    else
+        dev(err)
+    end
+    return configEnv
+end),
 }
 function createHitBox()
     local dialog = Dialog("New Hitbox")
@@ -179,6 +190,9 @@ function openSettings()
 end
 
 function loadData()
+    local sprite_data_path = app.fs.filePath(app.sprite.filename)..app.fs.pathSeparator..app.fs.fileTitle(app.sprite.filename)..'_HitboxData.lua'
+    local sprite_data = UTILS.openFile(sprite_data_path)
+    
     local site = app.site
     local layer = app.activeLayer
     hitboxData = {}
@@ -215,7 +229,9 @@ function createMenu()
     end
     loadData()
     menu = Dialog{title="Hitbox Toolbar", onclose=(function()
-        app.sprite:deleteLayer(hitboxGroup)
+        if not settings.preserveOnClose then
+            app.sprite:deleteLayer(hitboxGroup)
+        end
         menu = nil
      end)}
     :button{text="◻+",onclick=createHitBox}
@@ -226,4 +242,5 @@ function createMenu()
 end
 
 local hitboxData, hitboxGroup, menu
+settings = UTILS.openFile('Settings')
 createMenu()
