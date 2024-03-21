@@ -10,7 +10,7 @@
     - [ ] Dropdown for which hitbox
     - [ ] large Preview image
     - [ ] slider typething for which frame
-    - [ ] Draw Mockup image
+    - [x] Draw Mockup image
   - [ ] Settings button
     - [ ] Add actual settings
 - [ ] Make changing layer color change color of every cel in that hitbox layer
