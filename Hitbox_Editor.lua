@@ -88,10 +88,8 @@ openFile = (function(filename)
     local configEnv = {} -- to keep it separate from the global env
     local f,err = loadfile(filename, "t", configEnv)
     if f then
-        f() -- run the chunk
-        dev(configEnv) -- table
-    else
-        dev(err)
+        f()
+        dev(configEnv)
     end
     return configEnv
 end),
