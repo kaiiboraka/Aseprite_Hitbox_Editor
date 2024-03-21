@@ -1,7 +1,7 @@
 # Aseprite Hitbox Editor
 A lua script for Aseprite for easily creating usable hitbox data for pixel art animations. 
 
-### Toolbar Functionality
+## Toolbar Functionality
 
 - add
   - Create New Hitbox in its own Layer
@@ -17,7 +17,7 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
   - import
     - load in a JSON file with hitbox data and create a corresponding Hitbox_Data group with its layers
 
-### Hitboxes
+## Hitbox Data
 - Persistent properties (over hitbox lifetime):
   - Damage (float)
   - HitCount (int) 
