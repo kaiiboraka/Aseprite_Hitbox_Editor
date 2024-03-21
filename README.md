@@ -38,13 +38,9 @@ A lua script for Aseprite for easily creating usable hitbox data for pixel art a
 
 <p></p>
 
-- Customizable hitbox types, with some templates to start from:
-  - BoxType: Hurtbox
-  - BoxType: Hitbox
-  - Hitbox types have unique:
-    - Color
-    AND/OR
-    - Shape
+- Customization of hitboxes:
+  - Style: Hitboxes can be assigned any color and transparency.
+  - Shape: "boxes" can be rectangles or circles.
 
 ## TERMS, and how hitboxes even work:
 
