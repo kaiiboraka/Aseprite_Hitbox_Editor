@@ -1,1 +1,2 @@
-- Make changing layer color change color of every cel in that hitbox layer
+- [x] Create toolbar UI
+- [ ] Make changing layer color change color of every cel in that hitbox layer
