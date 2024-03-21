@@ -1,0 +1,1 @@
+- Make changing layer color change color of every cel in that hitbox layer
