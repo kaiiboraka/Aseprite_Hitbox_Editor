@@ -218,7 +218,7 @@ function createMenu()
         app.sprite:deleteLayer(hitboxGroup)
         menu = nil
      end)}
-    :button{text="+◻",onclick=createHitBox}
+    :button{text="◻+",onclick=createHitBox}
     :button{text='◻-',onclick=removeHitBox}
     :button{text="◻?",onclick=editHitBox}
     :button{id='vis',text='<o>',onclick=toggleVisibility}
