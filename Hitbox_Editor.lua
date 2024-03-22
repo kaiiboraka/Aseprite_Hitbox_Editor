@@ -103,7 +103,7 @@ closeFile = (function(fileToSave)
 end),
 }
 function createHitBox()
-    local dialog = Dialog("New Hitbox")
+    local dialog = Dialog{title="New Hitbox", parent=menu}
     local sprite = app.sprite
     local SIZE = 256
     local drawScaleX = SIZE/sprite.width
@@ -160,11 +160,27 @@ function createHitBox()
     onchange=(function(ev)dialog:repaint() end)}
     :separator()
     :button{ id="ok", text="ACCEPT", onclick=fillBox, focus=true }  
-    :show{ wait=false }
+    :show{}
 end
 
 function removeHitBox()
+    if #hitboxGroup.layers == 0 then
+        return
+    end
+    local dialog = Dialog{title="Remove Hitbox", parent=menu}
+    local options = {}
+    for i = 1,#hitboxGroup.layers do
+        options[i] = hitboxGroup.layers[i].name
+    end
+    dialog:combobox{id='combo',options=options, option=1}
+    dialog:button{id='ok', text="REMOVE", onclick=(function(ev)
+        app.sprite:deleteLayer(hitboxGroup.layers[dialog.data.combo])
+        app.refresh()
+        dialog:close()
+    end)}
+    dialog:show{}
 end
+
 function editHitBox()
 end
 
@@ -193,7 +209,7 @@ function toggleVisibility()
 end
 
 function openSettings()
-    local dialog = Dialog("Settings")
+    local dialog = Dialog{title="Settings"}
     function changeTab(ev)
         dialog:modify{id='sliderTest',visible=false}
         dialog:modify{id='comboTest',visible=false}
@@ -204,6 +220,9 @@ function openSettings()
         dialog:modify{id='C',visible=false}
         dialog:modify{id='D',visible=false}
         dialog:modify{id='E',visible=false}
+        for i=10,20 do
+            dialog:modify{id='btn'..i,visible=false}
+        end
         if ev.tab == "hitbox" then
         elseif ev.tab == "general" then
             dialog:modify{id='preserveOnClose',visible=true}
@@ -217,6 +236,9 @@ function openSettings()
             dialog:modify{id='C',visible=true}
             dialog:modify{id='D',visible=true}
             dialog:modify{id='E',visible=true}
+            for i=10,20 do
+                dialog:modify{id='btn'..i,visible=true}
+            end
         end
     end
     dialog:tab{id="hitbox", text="Hitboxes"}
@@ -227,6 +249,17 @@ function openSettings()
     dialog:check{id='preserveOnClose',text="Remove Hitboxes on Close", selected=not settings.preserveOnClose, onclick=function(ev) settings.preserveOnClose = not settings.preserveOnClose end}
     
     -- Dev Testing
+    local selected = {}
+    for i=10,20 do
+        selected[i] = false
+        dialog:button{id='btn'..tostring(i),selected=selected[i],text=tostring(i), onclick=
+        (function(ev) 
+            selected[i] = not selected[i]
+            for j=10,20 do    
+                dialog:modify{id='btn'..tostring(j), selected=selected[j]}
+            end
+        end)}
+    end
     dialog:combobox{id='comboTest',options={"a","b","c"}, option='a'}
     dialog:slider{id='sliderTest', min=1, max=#app.sprite.frames,value=app.frame.frameNumber}
     dialog:button{id='menuBtn', text='menu',onclick=function(ev)
@@ -248,7 +281,7 @@ function openSettings()
     dialog:separator{id='sep'}
     dialog:button{text="SAVE", onclick=function() dialog:close() end}
     changeTab({tab="hitbox"})
-    dialog:show{wait=false}
+    dialog:show{}
 end
 
 function loadData()
