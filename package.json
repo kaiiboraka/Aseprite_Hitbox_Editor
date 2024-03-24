@@ -1,0 +1,18 @@
+{
+    "name": "hitbox-editor",
+    "displayName": "Hitbox Editor",
+    "description": "A plugin for easily creating usable hitbox data for pixel art animations.",
+    "version": "0.2",
+    "author": { "name": "kaiiboraka",
+                "email": "elythiathegame@gmail.com",
+                "url": "https://gamejolt.com/games/elythia/528249" },
+    "contributors": [ "codeaddict" ],
+    "publisher": "kaiiboraka",
+    "license": "CC0-1.0",
+    "categories": [ "Scripts" ],
+    "contributes": {
+      "scripts": [
+          { "path": "./Hitbox_Editor.lua" }
+      ]
+    }
+  }

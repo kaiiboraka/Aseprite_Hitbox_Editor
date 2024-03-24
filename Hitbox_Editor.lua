@@ -56,10 +56,10 @@ function dev(str, tag)
 end
 
 UTILS = {
-drawRealImg=(function(ctx, SIZE)
+drawRealImg=(function(ctx, SIZE, frame)
     local sprite = app.sprite
     local img = Image(sprite.width, sprite.height, sprite.colorMode)
-    img:drawSprite(sprite, app.site.frameNumber)
+    img:drawSprite(sprite,frame)
     ctx:drawImage(img,0,0,sprite.width,sprite.height,0,0,SIZE,SIZE)
 end),
 getSelection = (function(startPt,endPt,SIZE,coordsType)
@@ -110,16 +110,31 @@ function createHitBox()
     local drawScaleY = SIZE/sprite.height
     local startPt = {x=(sprite.width/4)*drawScaleX, y=(sprite.height/4)*drawScaleY}
     local endPt = {x=(3*sprite.width/4)*drawScaleX, y=(3*sprite.height/4)*drawScaleY}
-    local selecting = false    
+    local selecting = false
+    
+    function updateSelection()
+        sprite.selection:select(UTILS.getSelection(startPt,endPt,SIZE,'sprite'))
+        dialog:repaint()
+    end
+
+    function updateTextFields()
+        dialog:modify{id='x',text=math.min(startPt.x, endPt.x)}
+        dialog:modify{id='y',text=math.min(startPt.y, endPt.y)}
+        dialog:modify{id='width',text=math.abs(endPt.x-startPt.x)}
+        dialog:modify{id='height',text=math.abs(endPt.y-startPt.y)}
+    end
+
     function fillBox(ev)
         local site = app.site
         local layer = app.activeLayer
         local newHitbox = sprite:newLayer()
         newHitbox.parent = hitboxGroup
         newHitbox.name = dialog.data.name
+        hitboxData[newHitbox.name] = newHitbox
+        dev(hitboxData[newHitbox.name])
         hitboxGroup.isEditable = true
         -- newHitbox.isContinuous = true -- use continuousness for iterpolating
-        sprite.selection:select(UTILS.getSelection(startPt,endPt,SIZE,'sprite'))
+        updateSelection()    
         local colorfg = app.fgColor
         app.fgColor = Color{r=dialog.data.color.red, g=dialog.data.color.green, b=dialog.data.color.blue, a=64}
         app.command.Fill{ }
@@ -130,34 +145,122 @@ function createHitBox()
         hitboxGroup.isEditable = false
         dialog:close()
     end
-    dialog:label{text="Hitbox name:"}:entry{id='name', text='Hitbox #'..(#hitboxGroup.layers+1), }:separator{}
-    dialog:canvas{ id="canvas", width=SIZE, height=SIZE,
+
+    dialog:newrow{ always=false }
+
+    dialog:label{
+        text="Hitbox name:"
+    }
+
+    dialog:entry{
+        id='name', 
+        text='Hitbox #'..(#hitboxGroup.layers+1)
+    }
+
+    dialog:newrow{ always=true }
+
+    dialog:separator{}
+
+    dialog:canvas{ 
+        id="canvas", 
+        width=SIZE, 
+        height=SIZE,
+        
         onmousedown=(function(ev)
-         startPt = {x=ev.x, y=ev.y}
-         selecting = true
-         dialog:repaint()
+            startPt = {x=ev.x, y=ev.y}
+            selecting = true
+            dialog:repaint()
         end),
         onmousemove=(function(ev)
             if not selecting then return end
             endPt = {x=ev.x, y=ev.y}
+            updateTextFields()
             dialog:repaint()
         end),
         onmouseup=(function(ev)
             endPt = {x=ev.x, y=ev.y}
             selecting = false
+            startPt.x, endPt.x = math.min(startPt.x, endPt.x), math.max(startPt.x, endPt.x)
+            startPt.y, endPt.y = math.min(startPt.y, endPt.y), math.max(startPt.y, endPt.y)
+            updateTextFields()
             dialog:repaint()
         end),
         onpaint=(function(ev) 
             local ctx = ev.context
-            UTILS.drawRealImg(ctx,SIZE)
+            UTILS.drawRealImg(ctx, SIZE, app.site.frameNumber)
             ctx.color = dialog.data.color
             ctx.color = Color{r=ctx.color.red, g=ctx.color.green, b=ctx.color.blue, a=64};
             ctx:fillRect(UTILS.getSelection(startPt,endPt,SIZE,'canvas'))
         end)
     }
-    dialog:separator{}:label{text="Color:"}:color{ id='color',
-    color=Color{r=255, g=0, b=0, a=255},
-    onchange=(function(ev)dialog:repaint() end)}
+    
+    dialog:separator{}
+
+    dialog:color{ 
+        id='color',
+        color=Color{r=255, g=0, b=0, a=255},
+        onchange=(function(ev)dialog:repaint() end)
+    }
+    dialog:newrow{ always=false }
+
+    dialog:label{
+        text="X position:"
+    }
+    dialog:label{
+        text="Y position:"
+    }
+
+    dialog:number{
+        id="x",
+        text=string.format("%d",startPt.x),
+        decimals=0,
+        onchange=function() 
+            startPt.x = dialog.data.x
+            endPt.x = startPt.x + dialog.data.width
+            updateSelection()
+        end
+    }
+    dialog:number{
+        id="y",
+        text=string.format("%d", startPt.y),
+        decimals=0,
+        onchange=function() 
+            startPt.y = dialog.data.y
+            endPt.y = startPt.y + dialog.data.height
+            updateSelection()
+        end
+    }
+
+    dialog:label{
+        text="Width:"
+    }
+    dialog:label{
+        text="Height:"
+    }
+    -- sprite.selection:select(UTILS.getSelection(startPt,endPt,SIZE,'sprite'))
+    dialog:number{
+        id="width",
+        text=string.format("%d",endPt.x - startPt.x),
+        decimals=0,
+        onchange=function() 
+            endPt.x = startPt.x + dialog.data.width
+            updateSelection()
+        end
+    }
+    dialog:number{
+        id="height",
+        text=string.format("%d",endPt.y - startPt.y),
+        decimals=0,
+        onchange=function() 
+            endPt.y = startPt.y + dialog.data.height
+            updateSelection()
+        end    
+    }
+
+
+    dialog:newrow{ always=true }
+
+
     :separator()
     :button{ id="ok", text="ACCEPT", onclick=fillBox, focus=true }  
     :show{}

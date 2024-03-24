@@ -1,6 +1,6 @@
 - [x] Create toolbar UI
   - [ ] Add Hitbox button
-    - [ ] Change location x,y,w,h buttons
+    - [x] Change location x,y,w,h buttons
     - [ ] Shape
     - [ ] Color/hitbox type presets
     - [ ] Make adding hitboxes work when hidden (don't use app.command.Fill{ }?)
@@ -14,3 +14,4 @@
   - [ ] Settings button
     - [ ] Add actual settings
 - [ ] Make changing layer color change color of every cel in that hitbox layer
+- [ ] Make SIZE not be square, support rectangles
