@@ -444,4 +444,72 @@ local hitboxData, hitboxGroup, menu
 local script_path = app.fs.userConfigPath..'scripts'..app.fs.pathSeparator..'Hitbox_Editor'
 local settings_path = script_path..app.fs.pathSeparator..'Hitbox_Settings.ini'
 settings = UTILS.openFile(settings_path)
-createMenu()
+
+
+function init(plugin)
+    print("Aseprite is initializing my plugin")
+  
+    -- we can use "plugin.preferences" as a table with fields for
+    -- our plugin (these fields are saved between sessions)
+    if plugin.preferences.count == nil then
+      plugin.preferences.count = 0
+    end
+  
+    
+    plugin:newCommand{
+      id="MyFirstCommand",
+      title="My First Command",
+      group="cel_popup_properties",
+      onclick=function()
+        plugin.preferences.count = plugin.preferences.count+1
+      end
+    }
+
+    plugin:newMenuGroup{
+        id="hitbox_menu",
+        title="Hitbo&x",
+        group="file_menu",
+    }
+
+    plugin:newCommand{
+        id="toolbar",
+        title="Open Hitbox Toolbar",
+        group="hitbox_menu",
+        onclick=createMenu
+    }
+
+    plugin:newMenuSeparator{
+        group="hitbox_menu"
+    }
+
+    plugin:newCommand{
+        id="AddHitbox",
+        title="Add new Hitbox Layer",
+        group="hitbox_menu",
+        onclick=createHitBox
+    }
+
+    plugin:newMenuSeparator{
+        group="hitbox_menu"
+    }
+
+    plugin:newCommand{
+        id="RemoveHitbox",
+        title="Remove existing Hitbox Layer",
+        group="hitbox_menu",
+        onclick=removeHitBox
+    }
+
+    plugin:newCommand{
+        id="EditHitbox",
+        title="Edit existing Hitbox data",
+        group="hitbox_menu",
+        onclick=editHitBox
+    }
+
+end
+
+function exit(plugin)
+    print("Aseprite is closing my plugin, MyFirstCommand was called "
+            .. plugin.preferences.count .. " times")
+end
