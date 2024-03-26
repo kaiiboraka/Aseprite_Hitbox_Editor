@@ -467,8 +467,9 @@ function init(plugin)
 
     plugin:newMenuGroup{
         id="hitbox_menu",
-        title="Hitbo&x",
-        group="file_menu",
+        title="Hitbox",
+        group="file_scripts",
+        -- standard="file_menu",
     }
 
     plugin:newCommand{
@@ -489,10 +490,6 @@ function init(plugin)
         onclick=createHitBox
     }
 
-    plugin:newMenuSeparator{
-        group="hitbox_menu"
-    }
-
     plugin:newCommand{
         id="RemoveHitbox",
         title="Remove existing Hitbox Layer",
@@ -505,6 +502,17 @@ function init(plugin)
         title="Edit existing Hitbox data",
         group="hitbox_menu",
         onclick=editHitBox
+    }
+
+    plugin:newMenuSeparator{
+        group="hitbox_menu"
+    }
+
+    plugin:newCommand{
+        id="HitboxPrefs",
+        title="Preferences",
+        group="hitbox_menu",
+        onclick=openSettings
     }
 
 end
