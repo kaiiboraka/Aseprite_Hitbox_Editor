@@ -101,10 +101,21 @@ closeFile = (function(fileToSave)
     f:close()
     fileToSave.filepath = filepath
 end),
-defaultPreference = (function (option, val)
+}
+PREFS = {
+default = (function (option, val)
     if plugin.preferences[option] == nil then
         plugin.preferences[option] = val
     end
+end),
+get = (function (option)
+    return plugin.preferences[option]
+end),
+set = (function (option, val)
+    plugin.preferences[option] = val
+end),
+toggle = (function (option)
+    plugin.preferences[option] = not plugin.preferences[option]
 end),
 }
 function createHitBox()
@@ -339,7 +350,7 @@ function openSettings()
     dialog:tab{id="keybinds", text="Keybinds"}
     dialog:tab{id="dev", text="DevTesting"}
     dialog:endtabs{id='tabmenu',onchange=changeTab}
-    dialog:check{id='preserveOnClose', text="Remove Hitboxes on Close", selected=not plugin.preferences.preserveOnClose, onclick=function(ev) plugin.preferences.preserveOnClose = not plugin.preferences.preserveOnClose end}
+    dialog:check{id='preserveOnClose', text="Remove Hitboxes on Close", selected=not PREFS.get('preserveOnClose'), onclick=function(ev) PREFS.toggle('preserveOnClose') end}
     
     -- Dev Testing
     local selected = {}
@@ -436,7 +447,7 @@ menu = nil
 plugin = nil
 function init(pluginIn)
     plugin = pluginIn
-    UTILS.defaultPreference('preserveOnClose', false)
+    PREFS.default('preserveOnClose', false)
     
     plugin:newMenuGroup{
         id="hitbox_menu",
