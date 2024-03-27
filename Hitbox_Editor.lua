@@ -101,6 +101,11 @@ closeFile = (function(fileToSave)
     f:close()
     fileToSave.filepath = filepath
 end),
+defaultPreference = (function (option, val)
+    if plugin.preferences[option] == nil then
+        plugin.preferences[option] = val
+    end
+end),
 }
 function createHitBox()
     local dialog = Dialog{title="New Hitbox", parent=menu}
@@ -261,9 +266,9 @@ function createHitBox()
     dialog:newrow{ always=true }
 
 
-    :separator()
-    :button{ id="ok", text="ACCEPT", onclick=fillBox, focus=true }  
-    :show{}
+    dialog:separator()
+    dialog:button{ id="ok", text="ACCEPT", onclick=fillBox, focus=true }  
+    dialog:show{}
 end
 
 function removeHitBox()
@@ -314,33 +319,18 @@ end
 function openSettings()
     local dialog = Dialog{title="Settings"}
     function changeTab(ev)
-        dialog:modify{id='sliderTest',visible=false}
-        dialog:modify{id='comboTest',visible=false}
-        dialog:modify{id='preserveOnClose',visible=false}
-        dialog:modify{id='menuBtn',visible=false}
-        dialog:modify{id='A',visible=false}
-        dialog:modify{id='B',visible=false}
-        dialog:modify{id='C',visible=false}
-        dialog:modify{id='D',visible=false}
-        dialog:modify{id='E',visible=false}
+        local items = {
+            ['hitbox'] = {},
+            ['general'] = {'preserveOnClose'},
+            ['keybinds'] = {},
+            ['dev'] = {'sliderTest','comboTest','menuBtn','A','B','C','D','E'},
+        }
         for i=10,20 do
-            dialog:modify{id='btn'..i,visible=false}
+            items['dev'][i] = 'btn'..i
         end
-        if ev.tab == "hitbox" then
-        elseif ev.tab == "general" then
-            dialog:modify{id='preserveOnClose',visible=true}
-        elseif ev.tab == "keybinds" then
-        elseif ev.tab == "dev" then
-            dialog:modify{id='sliderTest',visible=true}
-            dialog:modify{id='comboTest',visible=true}
-            dialog:modify{id='menuBtn',visible=true}
-            dialog:modify{id='A',visible=true}
-            dialog:modify{id='B',visible=true}
-            dialog:modify{id='C',visible=true}
-            dialog:modify{id='D',visible=true}
-            dialog:modify{id='E',visible=true}
-            for i=10,20 do
-                dialog:modify{id='btn'..i,visible=true}
+        for catagory,values in pairs(items) do
+            for _,v in pairs(values) do
+                dialog:modify{id=v, visible=ev.tab == catagory}
             end
         end
     end
@@ -349,7 +339,7 @@ function openSettings()
     dialog:tab{id="keybinds", text="Keybinds"}
     dialog:tab{id="dev", text="DevTesting"}
     dialog:endtabs{id='tabmenu',onchange=changeTab}
-    dialog:check{id='preserveOnClose',text="Remove Hitboxes on Close", selected=not settings.preserveOnClose, onclick=function(ev) settings.preserveOnClose = not settings.preserveOnClose end}
+    dialog:check{id='preserveOnClose', text="Remove Hitboxes on Close", selected=not plugin.preferences.preserveOnClose, onclick=function(ev) plugin.preferences.preserveOnClose = not plugin.preferences.preserveOnClose end}
     
     -- Dev Testing
     local selected = {}
@@ -365,12 +355,14 @@ function openSettings()
     end
     dialog:combobox{id='comboTest',options={"a","b","c"}, option='a'}
     dialog:slider{id='sliderTest', min=1, max=#app.sprite.frames,value=app.frame.frameNumber}
-    dialog:button{id='menuBtn', text='menu',onclick=function(ev)
-        menu = Dialog{title="Menu"}
-        menu:menuItem{id='balh', text='Text A', onclick=noOP, selected=true}
-        menu:menuItem{id='balh2', text='Text B', onclick=noOP}
-        menu:showMenu{}
-    end }
+    dialog:button{id='menuBtn', text='menu',onclick=
+        (function(ev)
+            menu = Dialog{title="Menu"}
+            menu:menuItem{id='balh', text='Text A', onclick=noOP, selected=true}
+            menu:menuItem{id='balh2', text='Text B', onclick=noOP}
+            menu:showMenu{}
+        end)
+    }
     dialog:newrow{ always=false }
     dialog:button{id='A',text="A"}
     dialog:button{id='B',text="B"}
@@ -427,10 +419,9 @@ function createMenu()
     end
     loadData()
     menu = Dialog{title="Hitbox Toolbar", onclose=(function()
-        if not settings.preserveOnClose then
+        if not plugin.preferences.preserveOnClose then
             app.sprite:deleteLayer(hitboxGroup)
         end
-        UTILS.closeFile(settings)
         menu = nil
      end)}
     :button{text="◻+",onclick=createHitBox}
@@ -440,36 +431,17 @@ function createMenu()
     :button{text='...',onclick=openSettings}:show{wait=false}
 end
 
-local hitboxData, hitboxGroup, menu
-local script_path = app.fs.userConfigPath..'scripts'..app.fs.pathSeparator..'Hitbox_Editor'
-local settings_path = script_path..app.fs.pathSeparator..'Hitbox_Settings.ini'
-settings = UTILS.openFile(settings_path)
-
-
-function init(plugin)
-    print("Aseprite is initializing my plugin")
-  
-    -- we can use "plugin.preferences" as a table with fields for
-    -- our plugin (these fields are saved between sessions)
-    if plugin.preferences.count == nil then
-      plugin.preferences.count = 0
-    end
-  
+local hitboxData, hitboxGroup
+menu = nil
+plugin = nil
+function init(pluginIn)
+    plugin = pluginIn
+    UTILS.defaultPreference('preserveOnClose', false)
     
-    plugin:newCommand{
-      id="MyFirstCommand",
-      title="My First Command",
-      group="cel_popup_properties",
-      onclick=function()
-        plugin.preferences.count = plugin.preferences.count+1
-      end
-    }
-
     plugin:newMenuGroup{
         id="hitbox_menu",
         title="Hitbox",
         group="file_scripts",
-        -- standard="file_menu",
     }
 
     plugin:newCommand{
