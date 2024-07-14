@@ -1,6 +1,10 @@
 # Aseprite Hitbox Editor
 A plugin/script for Aseprite for easily creating usable hitbox data for pixel art animations. 
 
+NOTE: This is still a work in progress, and the data systems are not yet complete. 
+
+UPDATE 7/14 : The project got put on momentary hiatus as school started up again for me, but I will once again be needing it fairly soon and will likely be finishing it within the next couple of months. 
+
 ## Toolbar Functionality
 
 - add
